@@ -15,14 +15,13 @@ function generateTitleMovie(title :: String, author :: String)
 	# 24 w character width
 	titleWrap = wrap(title; width = 35)
 
-	# Move georgia tech logo up halfway to quics logo
-output = ```ffmpeg -y -f lavfi -i color=c=white:s=1920x1080:d=5 -i georgia-tech-logo.png -i quics-logo-trim.png
--filter_complex "overlay=40:main_h-overlay_h/2-236/2-40,overlay=main_w-overlay_w-40:main_h-overlay_h-40,
+output = ```ffmpeg -y -f lavfi -i color=c=white:s=1920x1080:d=5 -i quics-logo-trim.png
+-filter_complex "overlay=main_w-overlay_w-40:main_h-overlay_h-40,
 drawtext=fontfile=/Library/Fonts/Trebuchet\ MS\ Bold.ttf:fontsize=50:
-fontcolor=black:x=100:y=100:text='4th International Conference on Quantum Error Correction',
+fontcolor=black:x=100:y=100:text='Workshop on Quantum Machine Learning 2018',
 drawtext=fontfile=/Library/Fonts/Trebuchet\ MS.ttf:fontsize=50:
-fontcolor=black:x=100:y=150:text='www.qec2017.org (#qec17)
-Sept 11-15, 2017',
+fontcolor=black:x=100:y=150:text='qml2018.umiacs.io
+Sept 24-28, 2018',
 drawtext=fontfile=/Library/Fonts/Trebuchet\ MS\ Bold.ttf:fontsize=90:
 fontcolor=black:x=100:y=300:text='$titleWrap',
 drawtext=fontfile=/Library/Fonts/Trebuchet\ MS.ttf:fontsize=50:
@@ -61,5 +60,5 @@ for i = 1:size(titleData,1)
 	# First generate a title slide
 	generateTitleMovie(titleRow[5], "$(titleRow[3]), $(titleRow[4])")
 	# Then merge title slide and main movie together with transition.
-	mergeMovies(titleSlideName, "$(titleRow[2]).mp4", "$(titleRow[2])_merged.mp4")
+	mergeMovies(titleSlideName, "recordings/$(titleRow[2]).mov", "recordings/$(titleRow[2])_merged.mov")
 end
