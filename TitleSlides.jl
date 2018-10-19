@@ -1,4 +1,5 @@
 using TextWrap
+using CSV
 
 const titleSlideName = "title_tmp.mp4"
 const inputMovies = ARGS[1]
@@ -34,15 +35,6 @@ $titleSlideName```
 	println(out)
 end
 
-try
-	cmdfifo = run(`mkfifo temp1 temp2`)
-catch err
-	if isa(err, LoadError)
-		# do nothing
-		println("Already defined mkfifo")
-	end
-end
-
 "Merges mp4 movies (via copying -- not encoding) given by the arguments to a file given by output."
 function mergeMovies(movie1 :: String, movie2 :: String, output :: String)
 	cmdConcat = `ffmpeg -y -i $movie1 -c copy -bsf:v h264_mp4toannexb -f mpegts temp1` &
@@ -50,15 +42,31 @@ function mergeMovies(movie1 :: String, movie2 :: String, output :: String)
 	`ffmpeg -f mpegts -i "concat:temp1|temp2" -c copy -bsf:a aac_adtstoasc $output`
 	println(cmdConcat)
 	output = run(cmdConcat)
-	println(output)
 end
 
-# Reads in the csv given by ARGS and processes the lines one by one
-titleData = readcsv(inputMovies, String)
-for i = 1:size(titleData,1)
-	titleRow = titleData[i,:]
-	# First generate a title slide
-	generateTitleMovie(titleRow[5], "$(titleRow[3]), $(titleRow[4])")
-	# Then merge title slide and main movie together with transition.
-	mergeMovies(titleSlideName, "recordings/$(titleRow[2]).mov", "recordings/$(titleRow[2])_merged.mov")
+println("Preparing temp files")
+try
+	cmdfifo = run(`mkfifo temp1 temp2`)
+
+	# Reads in the csv given by ARGS and processes the lines one by one
+	println("Reading input csv")
+	for titleRow in CSV.File(inputMovies)
+		# titleRow = titleData[i,:]
+		println(titleRow)
+		# First generate a title slide
+		generateTitleMovie(titleRow.title, "$(titleRow.author), $(titleRow.affiliation)")
+		# # Then merge title slide and main movie together with transition.
+		mergeMovies(titleSlideName, "recordings/$(titleRow.filename).mov", "recordings/$(titleRow.filename)_merged.mov")
+	end
+catch err
+	if isa(err, LoadError)
+		# do nothing
+		println("Already defined mkfifo")
+	else
+		rethrow(err)
+	end
+finally
+	run(`rm temp1 temp2`)
 end
+
+
